@@ -64,6 +64,16 @@ class Upload extends InputWidget
      * @var string
      */
     public $messagesCategory = 'filekit/widget';
+    /**
+     * @var bool preview image file or not in the upload box.
+     */
+    public $previewImage = true;
+    /**
+     * custom hiddenInput id，if not set $this->options['id'] will be use.
+     * useful if use name,value
+     * @var null|string
+     */
+    public $hiddenInputId = null;
 
     /**
      * @throws \yii\base\InvalidConfigException
@@ -104,7 +114,12 @@ class Upload extends InputWidget
                 'minFileSize' => $this->minFileSize,
                 'acceptFileTypes' => $this->acceptFileTypes,
                 'files' => $this->files,
+                'previewImage' => $this->previewImage,
                 'showPreviewFilename' => $this->showPreviewFilename,
+                'pathAttribute' => 'path',
+                'baseUrlAttribute' => 'base_url',
+                'pathAttributeName' => 'path',
+                'baseUrlAttributeName' => 'base_url',
                 'messages' => [
                     'maxNumberOfFiles' => Yii::t($this->messagesCategory, 'Maximum number of files exceeded'),
                     'acceptFileTypes' => Yii::t($this->messagesCategory, 'File type not allowed'),
@@ -114,6 +129,23 @@ class Upload extends InputWidget
             ],
             $this->clientOptions
         );
+    }
+
+    /**
+     * @return void Registers widget translations
+     */
+    protected function registerMessages()
+    {
+        if (!array_key_exists($this->messagesCategory, Yii::$app->i18n->translations)) {
+            Yii::$app->i18n->translations[$this->messagesCategory] = [
+                'class' => 'yii\i18n\PhpMessageSource',
+                'sourceLanguage' => 'en-US',
+                'basePath' => __DIR__ . '/messages',
+                'fileMap' => [
+                    $this->messagesCategory => 'filekit/widget.php'
+                ],
+            ];
+        }
     }
 
     /**
@@ -133,7 +165,7 @@ class Upload extends InputWidget
         $content = Html::beginTag('div');
         $content .= Html::hiddenInput($this->name, null, [
             'class' => 'empty-value',
-            'id' => $this->options['id']
+            'id' => $this->hiddenInputId === null ? $this->options['id'] : $this->hiddenInputId
         ]);
         $content .= Html::fileInput($this->getFileInputName(), null, [
             'name' => $this->getFileInputName(),
@@ -155,22 +187,5 @@ class Upload extends InputWidget
             JuiAsset::register($this->getView());
         }
         $this->getView()->registerJs("jQuery('#{$this->getId()}').yiiUploadKit({$options});");
-    }
-
-    /**
-     * @return void Registers widget translations
-     */
-    protected function registerMessages()
-    {
-        if (!array_key_exists($this->messagesCategory, Yii::$app->i18n->translations)) {
-            Yii::$app->i18n->translations[$this->messagesCategory] = [
-                'class' => 'yii\i18n\PhpMessageSource',
-                'sourceLanguage' => 'en-US',
-                'basePath'=> __DIR__ . '/messages',
-                'fileMap'=>[
-                    $this->messagesCategory=>'widget.php'
-                ],
-            ];
-        }
     }
 }
